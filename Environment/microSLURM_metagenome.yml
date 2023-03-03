@@ -1,0 +1,14 @@
+name: microSLURM_metagenome
+channels:
+  - biobakery
+  - conda-forge
+  - bioconda
+  - default
+  - defaults
+dependencies:
+  - fastqc=0.11.9
+  - multiqc=1.11
+  - bbmap=38.92
+  - metaphlan=3.0.14
+  - humann=3.0.0
+  - kraken2=2.1.2
