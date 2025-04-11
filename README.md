@@ -1,10 +1,10 @@
-This GitHub repository houses a wrapper program (`microSLURM_metagenome.sh`) for processing shotgun metagenomic sequences (derived from Illumina paired-end whole genome shotgun sequencing) to taxonomic (relative abundances and abundance counts) and functional (gene and pathway) profiles on a computing cluster using a SLURM scheduling system. The overall pipeline includes performing an initial quality assessment on raw sequences using FastQC [https://www.bioinformatics.babraham.ac.uk/projects/fastqc/] and MultiQC [https://multiqc.info/], sequence processing using BBMap suite of tools [https://sourceforge.net/projects/bbmap/] including merging of paired-end reads using BBMerge (optional), adapter removal and quality trimming/filtering using BBDuk, removal of host contaminant reads using BBSplit/BBMap, removal of low complexity sequences using BBDuk, a final quality assessment of processed sequences, and lastly taxonomic and functional profiling using MetaPhlAn [https://huttenhower.sph.harvard.edu/metaphlan/] and HUMAnN [https://huttenhower.sph.harvard.edu/humann/] workflows. Alternatively, one can use Kraken2 [https://github.com/DerrickWood/kraken2/wiki] and Bracken [https://ccb.jhu.edu/software/bracken/] instead of MetaPhlAn for taxonomic profiling.
+This GitHub repository houses a wrapper program (`microSLURM_shotgun.sh`) for processing shotgun metagenomic sequences (derived from Illumina paired-end whole genome shotgun sequencing) to taxonomic (relative abundances and abundance counts) and functional (gene and pathway) profiles on a computing cluster using a SLURM scheduling system. The overall pipeline includes performing an initial quality assessment on raw sequences using FastQC [https://www.bioinformatics.babraham.ac.uk/projects/fastqc/] and MultiQC [https://multiqc.info/], sequence processing using BBMap suite of tools [https://sourceforge.net/projects/bbmap/] including merging of paired-end reads using BBMerge (optional), adapter removal and quality trimming/filtering using BBDuk, removal of host contaminant reads using BBSplit/BBMap, removal of low complexity sequences using BBDuk, a final quality assessment of processed sequences, and lastly taxonomic and functional profiling using MetaPhlAn [https://huttenhower.sph.harvard.edu/metaphlan/] and HUMAnN [https://huttenhower.sph.harvard.edu/humann/] workflows. Alternatively, one can use Kraken2 [https://github.com/DerrickWood/kraken2/wiki] and Bracken [https://ccb.jhu.edu/software/bracken/] instead of MetaPhlAn for taxonomic profiling.
 
 The following gives an overview of the overall structure of the repository:
 
 ## Directory tree for repository
 ```
-microSLURM_metagenome
+microSLURM_shotgun
 |
 |-- Environment -- Directory that contains a .yml file to create a conda environment 
 |                  with all the necessary packages for running the pipeline scripts.
@@ -15,7 +15,7 @@ microSLURM_metagenome
 |                      Running 0.get_reference_files.sh will download all the necessary
 |                      and most up to date reference files and databases used in the pipeline.
 |
-|-- microSLURM_metagenome -- Directory that contains separate shell scripts 
+|-- microSLURM_shotgun -- Directory that contains separate shell scripts 
 |                            for each step of the pipeline. Instead of running 
 |                            the whole pipeline using the main wrapper script
 |                            script, one can run it in chunks using these scripts. 
@@ -26,37 +26,37 @@ microSLURM_metagenome
 |                            with its own example job script for submitting it to 
 |                            a SLURM scheduler.
 |
-|-- microSLURM_metagenome.job -- An example sbatch job script for submitting the 
-|                                microSLURM_metagenome.sh to a SLURM 
+|-- microSLURM_shotgun.job -- An example sbatch job script for submitting the 
+|                                microSLURM_shotgun.sh to a SLURM 
 |                                scheduling system on a high performance computing cluster.
 |
-|-- microSLURM_metagenome.sh -- The wrapper program that runs the metagenomic pipeline.
+|-- microSLURM_shotgun.sh -- The wrapper program that runs the metagenomic pipeline.
 
 ```
 ## Important notes about the pipeline program
 
 ### Submission of internal sbatch jobs
-The `microSLURM_metagenome` scripts will internally submit jobs for each step of the pipeline. For each job step, a `run.sh` file is created in the current directory that contains the code for the currently running step, and is deleted once the step completes. Partitions, time limits, number of cores (cpus), and memory per cpu can be requested through the wrapper scripts to meet the demands of a particular SLURM scheduler, dataset, etc.
+The `microSLURM_shotgun` scripts will internally submit jobs for each step of the pipeline. For each job step, a `run.sh` file is created in the current directory that contains the code for the currently running step, and is deleted once the step completes. Partitions, time limits, number of cores (cpus), and memory per cpu can be requested through the wrapper scripts to meet the demands of a particular SLURM scheduler, dataset, etc.
 
 ### Required programs/databases and parameter descriptions
-For descriptions of required programs/databases and parameters for `microSLURM_metagenome.sh` script, run the respective script with parameter `-h`. As stated in the directory tree above, the directory `Environment` contains a `.yml` file that can be used to build a conda environment with all the necessary programs for running the `microSLURM_metagenome.sh` script.
+For descriptions of required programs/databases and parameters for `microSLURM_shotgun.sh` script, run the respective script with parameter `-h`. As stated in the directory tree above, the directory `Environment` contains a `.yml` file that can be used to build a conda environment with all the necessary programs for running the `microSLURM_shotgun.sh` script.
 
 ### Separate shell scripts for individual pipeline steps
-The directory `microSLURM_metagenome/` contains separate shell scripts that can perform each step of the pipeline individually, and are numbered in the sequence they are performed in the wrapper script `microSLURM_metagenome.sh`. These have been provided as an alternative to running the whole pipeline in one shot. Using these can be useful if the dataset being processed is very large, and will not complete in time using the one shot `microSLURM_metagenome.sh` wrapper script. These are also useful if the main wrapper script has failed, or stopped, at a certain step, and you want to continue with the pipeline without having to re-run the `microSLURM_metagenome.sh` script.
+The directory `microSLURM_shotgun/` contains separate shell scripts that can perform each step of the pipeline individually, and are numbered in the sequence they are performed in the wrapper script `microSLURM_shotgun.sh`. These have been provided as an alternative to running the whole pipeline in one shot. Using these can be useful if the dataset being processed is very large, and will not complete in time using the one shot `microSLURM_shotgun.sh` wrapper script. These are also useful if the main wrapper script has failed, or stopped, at a certain step, and you want to continue with the pipeline without having to re-run the `microSLURM_shotgun.sh` script.
 
 ### Removing intermediate sequence files generated during pipeline
-During running of the `microSLURM_metagenome.sh` script, intermediate sequence files are generated after each step of sequence processing (merging paired-reads if specified, quality trimming/filtering, decontamination) with the final quality controlled sequences being generated after the low-complexity sequence filtering step. This may take up a lot of storage space depending on the dataset size, so if you would like intermediate files removed at the end of the pipeline, keeping only the processed, quality controlled sequences, use the flag `-d` to remove them and their corresponding directories. Sequences that have been extracted from metagenomic reads during sequence processing (host sequences, low-complexity sequences) will be stored for record purposes, along with a combined log file for each sample joining all logs from each step. As the numbering of directories no longer makes sense after removing the intermediate sequence directories, the pipeline output directory is reorganized to include a directory for initial FastQC reports, the processed sequences, final FastQC reports, and results for taxonomic and functional profiling all with new numbering. The `microSLURM_metagenome/` directory contains a stand-a-lone script for performing this deletion and reorganization if wanting to do at a later time, or if running the pipeline in chunks.
+During running of the `microSLURM_shotgun.sh` script, intermediate sequence files are generated after each step of sequence processing (merging paired-reads if specified, quality trimming/filtering, decontamination) with the final quality controlled sequences being generated after the low-complexity sequence filtering step. This may take up a lot of storage space depending on the dataset size, so if you would like intermediate files removed at the end of the pipeline, keeping only the processed, quality controlled sequences, use the flag `-d` to remove them and their corresponding directories. Sequences that have been extracted from metagenomic reads during sequence processing (host sequences, low-complexity sequences) will be stored for record purposes, along with a combined log file for each sample joining all logs from each step. As the numbering of directories no longer makes sense after removing the intermediate sequence directories, the pipeline output directory is reorganized to include a directory for initial FastQC reports, the processed sequences, final FastQC reports, and results for taxonomic and functional profiling all with new numbering. The `microSLURM_shotgun/` directory contains a stand-a-lone script for performing this deletion and reorganization if wanting to do at a later time, or if running the pipeline in chunks.
 
 ### Generating a pipeline report for tracking number of sequences (and other metrics) through pipeline
-The `microSLURM_metagenome/` directory that houses separate shell scripts for each step of the pipeline also houses a script that can be used to generate a pipeline report detailing how many sequences were outputted from each step of the pipeline which can be useful for assessing sequence loss through the pipeline (`Pipeline_Report.sh`). Currently, this script only works if the pipeline was run without the `-d` flag (no removal of intermediate sequence files).
+The `microSLURM_shotgun/` directory that houses separate shell scripts for each step of the pipeline also houses a script that can be used to generate a pipeline report detailing how many sequences were outputted from each step of the pipeline which can be useful for assessing sequence loss through the pipeline (`Pipeline_Report.sh`). Currently, this script only works if the pipeline was run without the `-d` flag (no removal of intermediate sequence files).
 
 ```
-./microSLURM_metagenome.sh -h
+./microSLURM_shotgun.sh -h
 
 ##############################################################
-# microSLURM_metagenome                                      #
+# microSLURM_shotgun                                         #
 # Whole Genome Shotgun Metagenomic Processing Pipeline       #
-# Last updated: 19 Oct 2022                                  #
+# Last updated: 18 Nov 2022                                  #
 ##############################################################
  
  Description: This is a wrapper program that wraps various  
@@ -111,7 +111,7 @@ The `microSLURM_metagenome/` directory that houses separate shell scripts for ea
                 Make sure they are in your $PATH.          
                                                             
  Usage:                                                     
- microSLURM_metagenome.sh -i input_seqs_dir \  
+ microSLURM_shotgun.sh -i input_seqs_dir \  
                     -o output_dir \                         
                     -p 'commands; to; load; programs' \     
                     -r path/to/host/ref/file.fa \           
